@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <!-- Título para seleccionar el mes -->
+    <TextView
+        android:id="@+id/periodoSeleccionadoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecciona el Mes"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="16dp"
+        android:textStyle="bold" />
+
+    <!-- Spinner para seleccionar el mes -->
+    <Spinner
+        android:id="@+id/mesSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@android:color/holo_blue_light" />
+
+    <!-- Calendario para mostrar días -->
+    <CalendarView
+        android:id="@+id/calendarioMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dateTextAppearance="@style/TextAppearance.AppCompat.Large"
+        android:layout_marginBottom="16dp"
+        android:background="@android:color/holo_green_light" />
+
+    <!-- Estado de los días completados o fallidos -->
+    <TextView
+        android:id="@+id/estadoDiaTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Estado del Día"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:textColor="@android:color/black"
+        android:background="@android:color/holo_orange_light"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textStyle="bold" />
+
+</LinearLayout>

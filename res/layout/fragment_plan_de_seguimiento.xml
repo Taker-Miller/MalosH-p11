@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/purple_dark">
+
+    <TextView
+        android:id="@+id/labelTituloPlan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Plan de Seguimiento"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Botón para seleccionar fecha de inicio -->
+    <Button
+        android:id="@+id/fechaInicioButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccionar Fecha de Inicio"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/purple"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Texto para mostrar la fecha de inicio seleccionada -->
+    <TextView
+        android:id="@+id/fechaInicioTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha de Inicio no seleccionada"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Botón para seleccionar fecha de fin -->
+    <Button
+        android:id="@+id/fechaFinButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccionar Fecha de Fin"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/purple"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Texto para mostrar la fecha de fin seleccionada -->
+    <TextView
+        android:id="@+id/fechaFinTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha de Fin no seleccionada"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Botón para definir el plan -->
+    <Button
+        android:id="@+id/definirButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Definir Plan"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/purple"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Botón para volver -->
+    <Button
+        android:id="@+id/volverButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Volver"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/red"
+        android:padding="12dp" />
+
+</LinearLayout>

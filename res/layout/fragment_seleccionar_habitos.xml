@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/purple_dark">
+
+    <TextView
+        android:id="@+id/labelTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/selecciona_tus_malos_habitos"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/verde_menta"
+        android:layout_marginBottom="16dp">
+
+
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:rowCount="5"
+        android:columnCount="2"
+        android:layout_marginBottom="16dp">
+
+        <!-- CheckBox con color de texto corregido -->
+        <CheckBox
+            android:id="@+id/checkbox_fumar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fumar"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_alcohol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alcohol"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_mala_higiene"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mala_higiene"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_cafeina"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cafeina"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_interrumpir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/interrumpir"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_dormir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mal_dormir"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_comer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/comer_mal"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_no_beber_agua"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_agua"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_mala_alimentacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mala_alimentacion"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_poco_ejercicio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/poco_ejercicio"
+            android:textColor="@color/black"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="10dp" />
+    </GridLayout>
+</LinearLayout>
+
+
+<Button
+android:id="@+id/siguienteButton"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="@string/siguiente"
+android:textColor="@color/white"
+android:backgroundTint="@color/purple"
+android:layout_marginTop="16dp" />
+
+
+<Button
+android:id="@+id/volverButton"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="@string/volver"
+android:textColor="@color/white"
+android:backgroundTint="@color/red"
+android:layout_marginTop="16dp" />
+
+    </LinearLayout>

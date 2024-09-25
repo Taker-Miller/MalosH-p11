@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/purple_dark">
+
+    <!-- Título -->
+    <TextView
+        android:id="@+id/labelTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tus Malos Hábitos"
+        android:textSize="24sp"
+        android:textColor="@color/teal_light"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="24dp"
+        android:textStyle="bold"/>
+
+    <!-- Layout para agregar dinámicamente los malos hábitos -->
+    <LinearLayout
+        android:id="@+id/habitosLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/purple"
+        android:padding="8dp"
+        android:elevation="4dp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Botones para definir metas y volver -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/volverButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Volver"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/red"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginEnd="8dp"
+            android:elevation="4dp"
+            android:padding="12dp"/>
+
+        <Button
+            android:id="@+id/definirMetasButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Definir Metas"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/teal_dark"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
+            android:elevation="4dp"
+            android:padding="12dp"/>
+    </LinearLayout>
+
+</LinearLayout>

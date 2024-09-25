@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.seba.malosh">
+
+    <!-- Permiso para enviar notificaciones (para versiones recientes de Android 13 o superior) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Permiso para programar alarmas exactas (necesario para Android 12 o superior) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/icono_inicio"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/icono_inicio"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MalosH">
+
+        <!-- Actividad de bienvenida -->
+        <activity
+            android:name=".activities.BienvenidaActivity"
+            android:exported="false" />
+
+        <!-- Actividad de registro -->
+        <activity
+            android:name=".activities.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MalosH" />
+
+        <!-- Actividad principal (login) -->
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MalosH">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Declaración del BroadcastReceiver para manejar el inicio del plan -->
+        <receiver
+            android:name=".receivers.PlanInicioReceiver"
+            android:exported="false" />
+    </application>
+
+</manifest>

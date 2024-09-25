@@ -1,0 +1,145 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/purple_dark"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tituloDesafios"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Desafíos Diarios"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:id="@+id/contenedorDesafios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/aceptarDesafioButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Aceptar Desafío"
+        android:backgroundTint="@color/purple"
+        android:textColor="@android:color/white"
+        android:enabled="true"
+        android:layout_marginBottom="16dp" />
+
+
+    <!-- TextView para mostrar el temporizador de 24 horas -->
+    <TextView
+        android:id="@+id/tiempoRestanteTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Vuelve en: 24:00:00"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <!-- Nuevo TextView para mostrar el tiempo de espera -->
+    <TextView
+        android:id="@+id/tiempoEsperaTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Próximo desafío disponible en: 00:00"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <TextView
+        android:id="@+id/desafioDescripcion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
+
+    <LinearLayout
+        android:id="@+id/progresoChecklist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:visibility="gone"> <!-- Inicialmente oculto hasta que se acepte un desafío -->
+
+        <CheckBox
+            android:id="@+id/inicioCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inicio"
+            android:enabled="false" />
+
+        <CheckBox
+            android:id="@+id/enProgresoCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="En Progreso"
+            android:enabled="false" />
+
+        <CheckBox
+            android:id="@+id/casiPorTerminarCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Casi por Terminar"
+            android:enabled="false" />
+
+        <CheckBox
+            android:id="@+id/completadoCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Completado"
+            android:enabled="false" />
+    </LinearLayout>
+
+
+    <Button
+        android:id="@+id/cancelarDesafioButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancelar Desafío"
+        android:backgroundTint="@color/red"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <!-- Botón para completar el desafío, inicialmente oculto -->
+    <Button
+        android:id="@+id/desafioCompletadoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Completar Desafío"
+        android:backgroundTint="@color/verde"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <Button
+        android:id="@+id/verProgresoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ver Progreso"
+        android:backgroundTint="@color/purple"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <Button
+        android:id="@+id/volverButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Volver"
+        android:backgroundTint="@color/red"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>

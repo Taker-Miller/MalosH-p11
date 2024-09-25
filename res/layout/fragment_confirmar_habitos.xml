@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/purple_dark">
+
+    <!-- Título de confirmación -->
+    <TextView
+        android:id="@+id/labelTituloConfirmacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Estos Has Seleccionado"
+        android:textSize="20sp"
+        android:textColor="@color/teal_light"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Lista de hábitos seleccionados -->
+    <TextView
+        android:id="@+id/selectedHabitsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Pregunta de confirmación -->
+    <TextView
+        android:id="@+id/labelConfirmacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Estás Seguro que son tus malos hábitos?"
+        android:textSize="16sp"
+        android:textColor="@color/teal_light"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Botones de acción (No, Volver | Sí) -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/noButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No, Volver"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/red"
+            android:layout_marginEnd="16dp" />
+
+        <Button
+            android:id="@+id/siButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sí"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/teal_dark" />
+    </LinearLayout>
+
+</LinearLayout>

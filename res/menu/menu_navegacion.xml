@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_item_registrar_habitos"
+        android:title="@string/registrar_malos_habitos" />
+    <item
+        android:id="@+id/menu_item_metas"
+        android:title="@string/metas_nav" />
+    <item
+        android:id="@+id/menu_item_desafios"
+        android:title="Desafíos Diarios" />
+    <item
+        android:id="@+id/menu_item_progreso"
+        android:title="Progreso" />
+    <item
+        android:id="@+id/menu_item_reflexiones"
+        android:title="Reflexiones Diarias" />
+    <item
+        android:id="@+id/menu_item_tus_habitos"
+        android:title="Tus Malos Hábitos" />
+    <item
+        android:id="@+id/menu_item_logout"
+        android:title="Cerrar Sesión" />
+</menu>
