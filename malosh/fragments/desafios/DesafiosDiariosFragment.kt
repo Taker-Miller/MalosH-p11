@@ -19,6 +19,7 @@ class DesafiosDiariosFragment : Fragment() {
     private lateinit var aceptarDesafioButton: Button
     private lateinit var cancelarDesafioButton: Button
     private lateinit var desafioDescripcion: TextView
+    private lateinit var temporizadorTextView: TextView
 
     // Checkboxes para el progreso
     private lateinit var inicioCheckBox: CheckBox
@@ -30,6 +31,9 @@ class DesafiosDiariosFragment : Fragment() {
     private var currentDesafio: String? = null
     private var desafioEnProgreso = false
     private val handler = Handler()
+    private var tiempoRestante: Long = 0
+    private var temporizadorHandler = Handler()
+    private var temporizadorRunnable: Runnable? = null
 
     private lateinit var registeredHabits: ArrayList<String>
 
@@ -37,9 +41,8 @@ class DesafiosDiariosFragment : Fragment() {
         private const val HABITOS_KEY = "habitos_registrados"
         private const val TEMPORIZADOR_INICIO_KEY = "temporizador_inicio"
         private const val TEMPORIZADOR_DURACION = 60000L // 60 segundos en milisegundos (1 minuto)
-        private const val TEMPORIZADOR_ESPERA = 20000L // 20 segundos en milisegundos para un nuevo desafío
+        private const val TEMPORIZADOR_ESPERA = 20000L // 20 segundos en milisegundos
 
-        // Aquí aceptamos una lista de hábitos para pasarla como un ArrayList<String>
         fun newInstance(habits: ArrayList<String>): DesafiosDiariosFragment {
             val fragment = DesafiosDiariosFragment()
             val bundle = Bundle()
@@ -61,6 +64,7 @@ class DesafiosDiariosFragment : Fragment() {
         aceptarDesafioButton = view.findViewById(R.id.aceptarDesafioButton)
         cancelarDesafioButton = view.findViewById(R.id.cancelarDesafioButton)
         desafioDescripcion = view.findViewById(R.id.desafioDescripcion)
+        temporizadorTextView = view.findViewById(R.id.temporizadorTextView)
 
         // Inicializar los checkboxes
         inicioCheckBox = view.findViewById(R.id.inicioCheckBox)
@@ -68,14 +72,16 @@ class DesafiosDiariosFragment : Fragment() {
         casiPorTerminarCheckBox = view.findViewById(R.id.casiPorTerminarCheckBox)
         completadoCheckBox = view.findViewById(R.id.completadoCheckBox)
 
-        // Inicialmente ocultamos los checkboxes
-        setCheckBoxesVisibility(View.GONE)
-
-        // Restaurar los estados de los checkboxes y su visibilidad si hay un desafío en progreso
-        actualizarCheckBoxesRestaurados()
-
         // Obtener los hábitos registrados desde el argumento que se pasó al crear el fragmento
         registeredHabits = arguments?.getStringArrayList(HABITOS_KEY) ?: arrayListOf()
+
+        // Restablecer el estado visual de los checkboxes y botones al entrar en el fragment
+        limpiarEstadoCheckBoxes()
+        setCheckBoxesVisibility(View.GONE) // Asegurarse de que los checkboxes estén ocultos
+        aceptarDesafioButton.visibility = View.VISIBLE
+        aceptarDesafioButton.isEnabled = true
+        cancelarDesafioButton.visibility = View.GONE
+        temporizadorTextView.visibility = View.GONE
 
         // Verificar si hay un temporizador en progreso
         val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
@@ -83,11 +89,11 @@ class DesafiosDiariosFragment : Fragment() {
         currentDesafio = obtenerDesafioEnProgreso(requireContext()) // Obtener el desafío actual en progreso
 
         if (inicioTemporizador > 0L && currentDesafio != null) {
-            // Si el temporizador ya está en progreso y hay un desafío guardado, reanudar el temporizador
+            // Reanudar el temporizador del desafío en progreso
             reanudarTemporizador(inicioTemporizador)
-            mostrarDesafioEnProgreso() // Asegurarse de mostrar el nombre del desafío y el progreso
+            mostrarDesafioEnProgreso()
         } else {
-            // Verificar si el desafío fue completado o está en progreso
+            // Si no hay temporizador en progreso, generar un nuevo desafío
             generarDesafiosSiEsNecesario()
         }
 
@@ -110,34 +116,122 @@ class DesafiosDiariosFragment : Fragment() {
         return view
     }
 
+    private fun iniciarTemporizadorEspera() {
+        temporizadorTextView.visibility = View.VISIBLE
+        desafioDescripcion.visibility = View.GONE // Ocultar el desafío en progreso mientras se espera el próximo desafío
+        temporizadorHandler.removeCallbacksAndMessages(null)
 
-    private fun generarDesafiosSiEsNecesario() {
-        val sharedPreferences = requireContext().getSharedPreferences("desafio_prefs", Context.MODE_PRIVATE)
-        val desafioGuardado = obtenerDesafioEnProgreso(requireContext())
+        temporizadorRunnable = object : Runnable {
+            var tiempoRestante = TEMPORIZADOR_ESPERA
 
-        if (desafioGuardado != null) {
-            // Si ya hay un desafío guardado, mostrarlo y no generar uno nuevo
+            override fun run() {
+                if (tiempoRestante > 0) {
+                    temporizadorTextView.text = "Próximo desafío disponible en: ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos"
+                    tiempoRestante -= 1000
+                    temporizadorHandler.postDelayed(this, 1000)
+                } else {
+                    temporizadorTextView.visibility = View.GONE
+                    desafioDescripcion.visibility = View.VISIBLE // Mostrar el desafío cuando termine el temporizador
+                    generarDesafiosSiEsNecesario()
+                }
+            }
+        }
+        temporizadorHandler.post(temporizadorRunnable!!)
+    }
+
+    private fun cancelarDesafio() {
+        // Detener cualquier temporizador actual
+        handler.removeCallbacksAndMessages(null)
+
+        currentDesafio = null
+        desafioEnProgreso = false
+        limpiarEstadoCheckBoxes()
+
+        setCheckBoxesVisibility(View.GONE)
+        desafioDescripcion.text = "Próximo desafío disponible."
+
+        // Limpiar el estado guardado en SharedPreferences para el temporizador
+        val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.remove("inicio_desafio")  // Eliminar el tiempo de inicio
+        editor.apply()
+
+        // Utiliza la función guardarDesafioEnProgreso para actualizar el estado del desafío
+        guardarDesafioEnProgreso(requireContext(), null, false)
+
+        // Mostrar la interfaz para aceptar un nuevo desafío
+        aceptarDesafioButton.visibility = View.VISIBLE
+        aceptarDesafioButton.isEnabled = true
+
+        iniciarTemporizadorEspera()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
+        val inicioDesafio = sharedPreferences.getLong("inicio_desafio", 0L)
+        val desafioEnProgreso = sharedPreferences.getBoolean("desafio_en_progreso", false)
+        val desafioGuardado = sharedPreferences.getString("desafio_actual", null)
+
+        if (desafioEnProgreso && inicioDesafio > 0 && desafioGuardado != null) {
+            // Recuperar el desafío guardado y mostrarlo
             currentDesafio = desafioGuardado
-            mostrarDesafioEnProgreso()
+            desafioDescripcion.text = currentDesafio
+            desafioDescripcion.visibility = View.VISIBLE
+
+            // Calcular el tiempo restante del desafío
+            val tiempoActual = System.currentTimeMillis()
+            val tiempoRestante = TEMPORIZADOR_DURACION - (tiempoActual - inicioDesafio)
+
+            if (tiempoRestante > 0) {
+                desafioDescripcion.text = "Desafío en progreso. Tiempo restante: ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos"
+                reanudarTemporizador(inicioDesafio)
+            } else {
+                // Si el tiempo ha terminado, completar el desafío
+                validarDesafioCompletado()
+            }
         } else {
-            // Si no hay un desafío guardado, generar uno nuevo
-            generarDesafios(registeredHabits)
-            mostrarDesafio()
+            // No hay desafío en progreso, restablecer la interfaz para permitir aceptar un nuevo desafío
+            desafioDescripcion.visibility = View.GONE
+            aceptarDesafioButton.visibility = View.VISIBLE
+            aceptarDesafioButton.isEnabled = true
+            setCheckBoxesVisibility(View.GONE)
+            iniciarTemporizadorEspera()
         }
     }
 
+    private fun validarDesafioCompletado() {
+        if (inicioCheckBox.isChecked && enProgresoCheckBox.isChecked &&
+            casiPorTerminarCheckBox.isChecked && completadoCheckBox.isChecked) {
+            Toast.makeText(context, "¡Desafío completado exitosamente!", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Desafío fallido. No completaste todas las etapas.", Toast.LENGTH_SHORT).show()
+        }
+
+        setCheckBoxesVisibility(View.GONE)
+        limpiarEstadoCheckBoxes()
+
+        aceptarDesafioButton.visibility = View.VISIBLE
+        aceptarDesafioButton.isEnabled = true
+
+        iniciarTemporizadorEspera()
+    }
+
     private fun iniciarTemporizador1Minuto() {
+        temporizadorTextView.visibility = View.GONE // Ocultar el temporizador de espera
+        desafioDescripcion.visibility = View.VISIBLE // Mostrar el desafío en progreso
+
+        // Código existente para iniciar el temporizador del desafío
         val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
-        // Guardar el tiempo de inicio en SharedPreferences
         val tiempoInicio = System.currentTimeMillis()
         editor.putLong(TEMPORIZADOR_INICIO_KEY, tiempoInicio)
         editor.apply()
 
-        // Mostrar los checkboxes cuando el temporizador comienza
         setCheckBoxesVisibility(View.VISIBLE)
-        resetCheckBoxes() // Resetear los checkboxes
+        resetCheckBoxes()
 
         reanudarTemporizador(tiempoInicio)
     }
@@ -150,24 +244,18 @@ class DesafiosDiariosFragment : Fragment() {
             aceptarDesafioButton.visibility = View.GONE
             cancelarDesafioButton.visibility = View.VISIBLE
 
-            desafioDescripcion.text =
-                "Desafío en progreso. Tiempo restante: ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos."
-            setCheckBoxesVisibility(View.VISIBLE) // Mostrar los CheckBox
+            desafioDescripcion.text = "Desafío en progreso. Tiempo restante: ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos."
+            setCheckBoxesVisibility(View.VISIBLE)
 
             handler.postDelayed(object : Runnable {
                 var tiempoRestanteActualizado = tiempoRestante
                 override fun run() {
                     if (tiempoRestanteActualizado > 0) {
                         tiempoRestanteActualizado -= 1000
-                        desafioDescripcion.text = "Desafío en progreso. Tiempo restante: ${
-                            TimeUnit.MILLISECONDS.toSeconds(tiempoRestanteActualizado)
-                        } segundos."
-
+                        desafioDescripcion.text = "Desafío en progreso. Tiempo restante: ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestanteActualizado)} segundos."
                         actualizarCheckBoxes(tiempoRestanteActualizado)
-
                         handler.postDelayed(this, 1000)
                     } else {
-                        // Cuando el temporizador llega a 0
                         validarDesafioCompletado()
                     }
                 }
@@ -177,41 +265,32 @@ class DesafiosDiariosFragment : Fragment() {
         }
     }
 
-
     private fun actualizarCheckBoxes(tiempoRestante: Long) {
         val porcentajeRestante = 100 - ((tiempoRestante.toDouble() / TEMPORIZADOR_DURACION) * 100).toInt()
 
         val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
 
-        // Actualizamos los estados de los CheckBoxes con base en el tiempo transcurrido
         if (porcentajeRestante >= 25) {
             inicioCheckBox.isEnabled = true
-            inicioCheckBox.isChecked = true
-            editor.putBoolean("inicio_check", true) // Guardar el estado
+            editor.putBoolean("inicio_check", inicioCheckBox.isChecked)
         }
         if (porcentajeRestante >= 50) {
             enProgresoCheckBox.isEnabled = true
-            enProgresoCheckBox.isChecked = true
-            editor.putBoolean("en_progreso_check", true) // Guardar el estado
+            editor.putBoolean("en_progreso_check", enProgresoCheckBox.isChecked)
         }
         if (porcentajeRestante >= 75) {
             casiPorTerminarCheckBox.isEnabled = true
-            casiPorTerminarCheckBox.isChecked = true
-            editor.putBoolean("casi_terminado_check", true) // Guardar el estado
+            editor.putBoolean("casi_terminado_check", casiPorTerminarCheckBox.isChecked)
         }
-        if (porcentajeRestante >= 100) {
+        if (porcentajeRestante >= 90) {
             completadoCheckBox.isEnabled = true
-            completadoCheckBox.isChecked = true
-            editor.putBoolean("completado_check", true) // Guardar el estado
+            editor.putBoolean("completado_check", completadoCheckBox.isChecked)
         }
 
-        editor.apply() // Guardar cambios en SharedPreferences
+        editor.apply()
     }
 
-
-
-    // Esta función restablece los CheckBoxes deshabilitándolos y desmarcándolos
     private fun resetCheckBoxes() {
         inicioCheckBox.isChecked = false
         enProgresoCheckBox.isChecked = false
@@ -225,77 +304,21 @@ class DesafiosDiariosFragment : Fragment() {
     }
 
     private fun limpiarEstadoCheckBoxes() {
-        val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().clear().apply() // Limpiar todos los estados guardados de los checkboxes
+        inicioCheckBox.isChecked = false
+        enProgresoCheckBox.isChecked = false
+        casiPorTerminarCheckBox.isChecked = false
+        completadoCheckBox.isChecked = false
+
+        inicioCheckBox.isEnabled = false
+        enProgresoCheckBox.isEnabled = false
+        casiPorTerminarCheckBox.isEnabled = false
+        completadoCheckBox.isEnabled = false
     }
 
-
-
-
-    private fun validarDesafioCompletado() {
-        if (inicioCheckBox.isChecked && enProgresoCheckBox.isChecked &&
-            casiPorTerminarCheckBox.isChecked && completadoCheckBox.isChecked
-        ) {
-            Toast.makeText(context, "¡Desafío completado exitosamente!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Desafío fallido. No completaste todas las etapas.", Toast.LENGTH_SHORT).show()
-        }
-
-        setCheckBoxesVisibility(View.GONE)
-        limpiarEstadoCheckBoxes() // Limpiar el estado de los checkboxes al completar o fallar el desafío
-        iniciarTemporizador20Segundos()
+    private fun setCheckBoxesVisibility(visibility: Int) {
+        val progresoChecklist = view?.findViewById<LinearLayout>(R.id.progresoChecklist)
+        progresoChecklist?.visibility = visibility
     }
-
-
-    private fun iniciarTemporizador20Segundos() {
-        var tiempoRestante = TEMPORIZADOR_ESPERA // 20 segundos
-
-        // Mostrar el mensaje inicial del temporizador
-        desafioDescripcion.text = "Próximo desafío disponible en ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos."
-
-        // Crear un Runnable para contar hacia atrás cada segundo
-        val runnable = object : Runnable {
-            override fun run() {
-                if (tiempoRestante > 0) {
-                    tiempoRestante -= 1000
-                    desafioDescripcion.text = "Próximo desafío disponible en ${TimeUnit.MILLISECONDS.toSeconds(tiempoRestante)} segundos."
-                    handler.postDelayed(this, 1000) // Actualizar cada segundo
-                } else {
-                    // Cuando el tiempo llega a 0, generar un nuevo desafío y restablecer el estado
-                    desafioDescripcion.text = "¡Nuevo desafío disponible!"
-
-                    // Limpiar el desafío anterior
-                    limpiarDesafioAnterior()
-
-                    // Generar y mostrar un nuevo desafío
-                    generarDesafios(registeredHabits)
-                    mostrarDesafio()
-
-                    // Ajustar visibilidad de los botones y checkboxes
-                    aceptarDesafioButton.visibility = View.VISIBLE
-                    aceptarDesafioButton.isEnabled = true
-                    cancelarDesafioButton.visibility = View.GONE
-                    setCheckBoxesVisibility(View.GONE) // Ocultar los checkboxes para el nuevo desafío
-
-                    // Limpiar cualquier temporizador en SharedPreferences si fuera necesario
-                    val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
-                    sharedPreferences.edit().remove(TEMPORIZADOR_INICIO_KEY).apply() // Eliminar el tiempo de inicio guardado
-                }
-            }
-        }
-
-        // Iniciar el temporizador
-        handler.post(runnable)
-    }
-
-    private fun limpiarDesafioAnterior() {
-        // Limpia el desafío en progreso y actualiza la bandera a "no hay desafío en progreso"
-        desafioEnProgreso = false
-        currentDesafio = null
-        guardarDesafioEnProgreso(requireContext(), null, false) // Actualiza en SharedPreferences
-    }
-
-
 
     private fun mostrarDesafioEnProgreso() {
         aceptarDesafioButton.isEnabled = false
@@ -309,156 +332,138 @@ class DesafiosDiariosFragment : Fragment() {
         }
         contenedorDesafios.addView(textView)
 
-        // Mostrar los checkboxes y restaurar su visibilidad
         setCheckBoxesVisibility(View.VISIBLE)
-
-        // Restaura el estado de los checkboxes usando SharedPreferences
         actualizarCheckBoxesRestaurados()
     }
 
+    private fun actualizarCheckBoxesRestaurados() {
+        val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
 
+        inicioCheckBox.isChecked = sharedPreferences.getBoolean("inicio_check", false)
+        enProgresoCheckBox.isChecked = sharedPreferences.getBoolean("en_progreso_check", false)
+        casiPorTerminarCheckBox.isChecked = sharedPreferences.getBoolean("casi_terminado_check", false)
+        completadoCheckBox.isChecked = sharedPreferences.getBoolean("completado_check", false)
 
-    private fun cancelarDesafio() {
-        handler.removeCallbacksAndMessages(null)
-        guardarDesafioEnProgreso(requireContext(), null, false)
-        desafioEnProgreso = false
-        currentDesafio = null
-        setCheckBoxesVisibility(View.GONE)
-        desafioDescripcion.text = "Próximo desafío disponible en 20 segundos."
-        limpiarEstadoCheckBoxes() // Limpiar el estado de los checkboxes al cancelar el desafío
-        iniciarTemporizador20Segundos()
+        setCheckBoxesVisibility(View.VISIBLE)
     }
-
 
     private fun aceptarDesafio() {
         if (desafioEnProgreso) {
-            Toast.makeText(
-                context,
-                "Ya tienes un desafío en progreso. Finaliza o cancela el desafío actual primero.",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, "Ya tienes un desafío en progreso. Finaliza o cancela el desafío actual primero.", Toast.LENGTH_SHORT).show()
         } else {
             desafioEnProgreso = true
+            val tiempoInicio = System.currentTimeMillis()
+
+            // Guarda el desafío actual y el tiempo de inicio en SharedPreferences
+            val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putLong("inicio_desafio", tiempoInicio) // Guardar el tiempo de inicio
+            editor.apply()
+
+            // Utiliza la función guardarDesafioEnProgreso para guardar el desafío aceptado
             guardarDesafioEnProgreso(requireContext(), currentDesafio, true)
+
             Toast.makeText(context, "¡Desafío aceptado!", Toast.LENGTH_SHORT).show()
 
             // Mostrar el contenedor de los CheckBox cuando el desafío es aceptado
             setCheckBoxesVisibility(View.VISIBLE)
-            resetCheckBoxes() // Resetear los CheckBox
+            resetCheckBoxes()
 
             iniciarTemporizador1Minuto()
         }
     }
 
+    private fun generarDesafiosSiEsNecesario() {
+        val sharedPreferences = requireContext().getSharedPreferences("desafio_prefs", Context.MODE_PRIVATE)
+        val desafioGuardado = obtenerDesafioEnProgreso(requireContext())
 
-
+        if (desafioGuardado != null) {
+            currentDesafio = desafioGuardado
+            mostrarDesafioEnProgreso()
+        } else {
+            generarDesafios(registeredHabits)
+            mostrarDesafio()
+        }
+    }
 
     private fun generarDesafios(habitos: List<String>) {
-        desafiosList.clear() // Limpiar la lista antes de generar nuevos desafíos
+        desafiosList.clear()
 
         for (habito in habitos) {
             when (habito.lowercase().trim()) {
-                "cafeína", "consumo de cafeína" -> desafiosList.addAll(
+                "cafeína" -> desafiosList.addAll(
                     listOf(
-                        "No tomes café en las próximas 2 horas.",
+                        "No tomes café en las próximas 3 horas.",
                         "Reemplaza el café de la tarde con agua.",
-                        "No consumas cafeína después del mediodía."
+                        "No consumas cafeína después de las 3 p.m."
                     )
                 )
-
-                "dormir mal", "dormir a deshoras" -> desafiosList.addAll(
+                "dormir mal" -> desafiosList.addAll(
                     listOf(
-                        "No duermas durante el día.",
+                        "No tomes siestas durante el día.",
                         "Duerme al menos 7 horas esta noche.",
-                        "Apaga tus dispositivos electrónicos 30 minutos antes de dormir.",
-                        "Evita tomar café después de las 6 p.m.",
-                        "Realiza una rutina de relajación antes de dormir.",
-                        "Acuéstate antes de las 11 p.m.",
-                        "Despiértate a la misma hora mañana."
+                        "Apaga tus dispositivos electrónicos 30 minutos antes de dormir."
                     )
                 )
-
-                "interrumpir a otros" -> desafiosList.addAll(
-                    listOf(
-                        "No interrumpas a nadie en una conversación durante las próximas 3 horas.",
-                        "Escucha activamente durante una conversación sin interrumpir.",
-                        "Deja que los demás terminen de hablar antes de dar tu opinión.",
-                        "Practica la paciencia en una reunión evitando interrumpir.",
-                        "Asegúrate de dar espacio para que los demás hablen primero."
-                    )
-                )
-
                 "mala alimentación" -> desafiosList.addAll(
                     listOf(
                         "Evita la comida rápida durante todo el día.",
-                        "Come 3 comidas balanceadas hoy.",
-                        "Reemplaza los snacks poco saludables por frutas.",
+                        "Come tres comidas balanceadas hoy.",
+                        "Reemplaza los snacks poco saludables por frutas o verduras.",
                         "Reduce el consumo de azúcares en tu próxima comida.",
-                        "Incluye verduras en tu almuerzo.",
-                        "Come una comida casera hoy."
+                        "Añade una porción de verduras en cada comida hoy.",
+                        "Come una comida casera en lugar de comida procesada hoy."
                     )
                 )
-
                 "comer a deshoras" -> desafiosList.addAll(
                     listOf(
-                        "No comas después de las 10 p.m.",
-                        "Establece horarios regulares para tus comidas.",
+                        "No comas nada después de las 9 p.m.",
+                        "Establece horarios regulares para tus comidas y cúmplelos hoy.",
                         "No comas nada entre comidas durante las próximas 3 horas.",
-                        "Desayuna dentro de la primera hora de despertar.",
+                        "Desayuna dentro de la primera hora después de despertar.",
                         "Evita comer snacks después de la cena.",
-                        "Come tus tres comidas a la misma hora todos los días.",
-                        "No comas nada durante las próximas 2 horas."
+                        "Come tus tres comidas principales a la misma hora durante el día."
                     )
                 )
-
                 "poco ejercicio" -> desafiosList.addAll(
                     listOf(
-                        "Realiza una caminata de 30 minutos hoy.",
-                        "Haz 15 minutos de estiramientos en casa.",
-                        "Realiza 10 flexiones en tu descanso.",
-                        "Sube las escaleras en lugar de usar el ascensor.",
-                        "Realiza una rutina rápida de ejercicios al levantarte.",
-                        "Haz al menos 20 sentadillas hoy.",
-                        "Camina en lugar de conducir si es posible hoy."
+                        "Realiza una caminata de al menos 30 minutos hoy.",
+                        "Haz 15 minutos de estiramientos esta mañana.",
+                        "Realiza 10 flexiones durante tu próximo descanso.",
+                        "Sube las escaleras en lugar de usar el ascensor durante el día.",
+                        "Realiza una rutina rápida de ejercicios al despertarte mañana.",
+                        "Haz al menos 20 sentadillas antes de dormir hoy."
                     )
                 )
-
                 "alcohol" -> desafiosList.addAll(
                     listOf(
-                        "No beber alcohol por 2 horas.",
-                        "No consumir alcohol durante todo el día.",
-                        "Evita tomar más de un vaso de alcohol durante 4 horas.",
-                        "No consumas bebidas alcohólicas hasta la noche.",
-                        "No tomes alcohol mientras estás en una reunión social.",
-                        "Reemplaza el alcohol con agua en tu siguiente comida.",
-                        "No consumas bebidas alcohólicas hoy."
+                        "No consumas alcohol durante las próximas 4 horas.",
+                        "No consumas bebidas alcohólicas durante todo el día.",
+                        "Evita tomar más de una copa de alcohol durante las próximas 5 horas.",
+                        "Reemplaza el alcohol con agua o una bebida sin alcohol en tu próxima comida.",
+                        "No consumas bebidas alcohólicas mientras estés en una reunión social hoy."
                     )
                 )
-
                 "fumar" -> desafiosList.addAll(
                     listOf(
-                        "No fumes durante las próximas 3 horas.",
-                        "Evita fumar un cigarrillo después del almuerzo.",
-                        "Intenta reducir tu consumo de cigarrillos a la mitad hoy.",
-                        "No fumes en las próximas 5 horas.",
-                        "Fuma solo la mitad de tu cigarrillo en tu siguiente descanso.",
-                        "Evita fumar mientras trabajas.",
-                        "No fumes en espacios cerrados durante todo el día."
+                        "No fumes durante las próximas 4 horas.",
+                        "Evita fumar un cigarrillo después de cada comida hoy.",
+                        "Intenta reducir tu consumo de cigarrillos a la mitad durante el día.",
+                        "No fumes durante las próximas 6 horas.",
+                        "Fuma solo la mitad de tu cigarrillo en tu próximo descanso.",
+                        "Evita fumar en espacios cerrados durante todo el día."
                     )
                 )
-
                 "mala higiene" -> desafiosList.addAll(
                     listOf(
                         "Cepilla tus dientes después de cada comida hoy.",
                         "Lávate las manos antes y después de cada comida.",
-                        "Dedica 10 minutos a limpiar tu espacio personal.",
-                        "Toma una ducha antes de acostarte.",
-                        "Lávate la cara cada mañana.",
-                        "Lávate las manos cada vez que salgas del baño.",
-                        "Realiza una limpieza rápida de tu habitación."
+                        "Dedica 10 minutos a limpiar tu espacio personal hoy.",
+                        "Toma una ducha antes de acostarte esta noche.",
+                        "Lávate la cara al menos dos veces durante el día.",
+                        "Realiza una limpieza rápida de tu habitación o escritorio."
                     )
                 )
-
                 else -> {
                     Toast.makeText(context, "No se encontraron desafíos para el hábito: $habito", Toast.LENGTH_SHORT).show()
                 }
@@ -469,65 +474,24 @@ class DesafiosDiariosFragment : Fragment() {
         mostrarDesafio() // Mostrar inmediatamente el nuevo desafío
     }
 
-
     private fun mostrarDesafio() {
         if (desafiosList.isNotEmpty()) {
-            currentDesafio = desafiosList.first() // Tomar el primer desafío generado
+            currentDesafio = desafiosList.first()
 
-            // Actualizar la UI con el nuevo desafío
-            contenedorDesafios.removeAllViews() // Limpiar el contenedor de desafíos previos
+            contenedorDesafios.removeAllViews()
             val textView = TextView(context).apply {
                 text = currentDesafio
                 textSize = 18f
                 setTextColor(resources.getColor(android.R.color.white))
             }
-            contenedorDesafios.addView(textView) // Añadir el desafío al contenedor
+            contenedorDesafios.addView(textView)
 
-            // Hacer visible el botón de aceptar el desafío si estaba oculto
             aceptarDesafioButton.visibility = View.VISIBLE
             aceptarDesafioButton.isEnabled = true
         } else {
             Toast.makeText(context, "No hay desafíos disponibles.", Toast.LENGTH_SHORT).show()
         }
     }
-
-
-    // Función para ocultar o mostrar los checkboxes
-    private fun setCheckBoxesVisibility(visibility: Int) {
-        val progresoChecklist = view?.findViewById<LinearLayout>(R.id.progresoChecklist)
-        progresoChecklist?.visibility = visibility
-    }
-
-    // Función para restaurar el estado de los checkboxes
-    private fun actualizarCheckBoxesRestaurados() {
-        val sharedPreferences = requireContext().getSharedPreferences("temporizador_prefs", Context.MODE_PRIVATE)
-
-        // Restaurar el estado de los checkboxes desde SharedPreferences
-        inicioCheckBox.isChecked = sharedPreferences.getBoolean("inicio_check", false)
-        enProgresoCheckBox.isChecked = sharedPreferences.getBoolean("en_progreso_check", false)
-        casiPorTerminarCheckBox.isChecked = sharedPreferences.getBoolean("casi_terminado_check", false)
-        completadoCheckBox.isChecked = sharedPreferences.getBoolean("completado_check", false)
-
-        // Habilitar los checkboxes que ya estaban marcados
-        if (inicioCheckBox.isChecked) {
-            enProgresoCheckBox.isEnabled = true
-        }
-        if (enProgresoCheckBox.isChecked) {
-            casiPorTerminarCheckBox.isEnabled = true
-        }
-        if (casiPorTerminarCheckBox.isChecked) {
-            completadoCheckBox.isEnabled = true
-        }
-
-        // Mostrar los checkboxes si alguno está marcado
-        if (inicioCheckBox.isChecked || enProgresoCheckBox.isChecked || casiPorTerminarCheckBox.isChecked || completadoCheckBox.isChecked) {
-            setCheckBoxesVisibility(View.VISIBLE)
-        }
-    }
-
-
-
-
 
     private fun guardarDesafioEnProgreso(context: Context, desafio: String?, enProgreso: Boolean) {
         val sharedPreferences = context.getSharedPreferences("desafio_prefs", Context.MODE_PRIVATE)
